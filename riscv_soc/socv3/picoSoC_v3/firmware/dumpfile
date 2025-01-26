@@ -1,0 +1,108 @@
+
+firmware.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .memory:
+
+00000000 <start>:
+   0:	40000113          	li	sp,1024
+   4:	0d8000ef          	jal	ra,dc <main>
+   8:	00100073          	ebreak
+
+0000000c <uart_send_char>:
+   c:	500007b7          	lui	a5,0x50000
+  10:	0047a783          	lw	a5,4(a5) # 50000004 <MEM_SIZE+0x4ffffc04>
+  14:	0057d793          	srli	a5,a5,0x5
+  18:	0017f793          	andi	a5,a5,1
+  1c:	fe0788e3          	beqz	a5,c <uart_send_char>
+  20:	500007b7          	lui	a5,0x50000
+  24:	00a7a023          	sw	a0,0(a5) # 50000000 <MEM_SIZE+0x4ffffc00>
+  28:	0087a703          	lw	a4,8(a5)
+  2c:	20076713          	ori	a4,a4,512
+  30:	00e7a423          	sw	a4,8(a5)
+  34:	00008067          	ret
+
+00000038 <uart_send_str>:
+  38:	ff010113          	addi	sp,sp,-16
+  3c:	00112623          	sw	ra,12(sp)
+  40:	00812423          	sw	s0,8(sp)
+  44:	00912223          	sw	s1,4(sp)
+  48:	00050493          	mv	s1,a0
+  4c:	00000413          	li	s0,0
+  50:	008487b3          	add	a5,s1,s0
+  54:	0007c503          	lbu	a0,0(a5)
+  58:	00050a63          	beqz	a0,6c <uart_send_str+0x34>
+  5c:	fb1ff0ef          	jal	ra,c <uart_send_char>
+  60:	00140413          	addi	s0,s0,1
+  64:	0ff47413          	andi	s0,s0,255
+  68:	fe9ff06f          	j	50 <uart_send_str+0x18>
+  6c:	00c12083          	lw	ra,12(sp)
+  70:	00812403          	lw	s0,8(sp)
+  74:	00412483          	lw	s1,4(sp)
+  78:	01010113          	addi	sp,sp,16
+  7c:	00008067          	ret
+
+00000080 <delay_long>:
+  80:	00000713          	li	a4,0
+  84:	00000793          	li	a5,0
+  88:	0140006f          	j	9c <delay_long+0x1c>
+  8c:	00170693          	addi	a3,a4,1
+  90:	00e6b633          	sltu	a2,a3,a4
+  94:	00068713          	mv	a4,a3
+  98:	00f607b3          	add	a5,a2,a5
+  9c:	00079a63          	bnez	a5,b0 <delay_long+0x30>
+  a0:	fe0796e3          	bnez	a5,8c <delay_long+0xc>
+  a4:	000f46b7          	lui	a3,0xf4
+  a8:	23f68693          	addi	a3,a3,575 # f423f <MEM_SIZE+0xf3e3f>
+  ac:	fee6f0e3          	bgeu	a3,a4,8c <delay_long+0xc>
+  b0:	00008067          	ret
+
+000000b4 <delay_short>:
+  b4:	00000793          	li	a5,0
+  b8:	00000693          	li	a3,0
+  bc:	00d7e733          	or	a4,a5,a3
+  c0:	00070463          	beqz	a4,c8 <delay_short+0x14>
+  c4:	00008067          	ret
+  c8:	00178713          	addi	a4,a5,1
+  cc:	00f73633          	sltu	a2,a4,a5
+  d0:	00070793          	mv	a5,a4
+  d4:	00d606b3          	add	a3,a2,a3
+  d8:	fe5ff06f          	j	bc <delay_short+0x8>
+
+000000dc <main>:
+  dc:	ff010113          	addi	sp,sp,-16
+  e0:	00112623          	sw	ra,12(sp)
+  e4:	00812423          	sw	s0,8(sp)
+  e8:	00000537          	lui	a0,0x0
+  ec:	12050513          	addi	a0,a0,288 # 120 <main+0x44>
+  f0:	f49ff0ef          	jal	ra,38 <uart_send_str>
+  f4:	400007b7          	lui	a5,0x40000
+  f8:	05500713          	li	a4,85
+  fc:	00e7a023          	sw	a4,0(a5) # 40000000 <MEM_SIZE+0x3ffffc00>
+ 100:	40000437          	lui	s0,0x40000
+ 104:	05500793          	li	a5,85
+ 108:	00f42023          	sw	a5,0(s0) # 40000000 <MEM_SIZE+0x3ffffc00>
+ 10c:	fa9ff0ef          	jal	ra,b4 <delay_short>
+ 110:	0aa00793          	li	a5,170
+ 114:	00f42023          	sw	a5,0(s0)
+ 118:	f9dff0ef          	jal	ra,b4 <delay_short>
+ 11c:	fe5ff06f          	j	100 <main+0x24>
+ 120:	7246                	flw	ft4,112(sp)
+ 122:	6565                	lui	a0,0x19
+ 124:	5020                	lw	s0,96(s0)
+ 126:	6c61                	lui	s8,0x18
+ 128:	7365                	lui	t1,0xffff9
+ 12a:	6974                	flw	fa3,84(a0)
+ 12c:	656e                	flw	fa0,216(sp)
+ 12e:	0021                	c.nop	8
+ 130:	3a434347          	fmsub.d	ft6,ft6,ft4,ft7,rmm
+ 134:	2820                	fld	fs0,80(s0)
+ 136:	29554e47          	fmsub.s	ft8,fa0,fs5,ft5,rmm
+ 13a:	3820                	fld	fs0,112(s0)
+ 13c:	322e                	fld	ft4,232(sp)
+ 13e:	302e                	fld	ft0,232(sp)
+	...
+
+00000141 <end>:
+ 141:	0000                	unimp
+	...
